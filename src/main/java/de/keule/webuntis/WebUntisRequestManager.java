@@ -11,6 +11,7 @@ import java.net.URL;
 import javax.net.ssl.HttpsURLConnection;
 
 import org.json.JSONObject;
+import org.json.XML;
 
 public class WebUntisRequestManager {
   private static String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36 OPR/83.0.4254.46";
@@ -18,12 +19,12 @@ public class WebUntisRequestManager {
   private static boolean printRequests = false;
 
   public static WebUntisResponse requestPOST(WebUntisRequestMethod method, WebUntisSessionInfo session,
-      String endPoint, String school, String params) throws IOException {
+                                             String endPoint, String school, String params) throws IOException {
     return requestPOST(method.NAME, session, endPoint, school, params);
   }
 
   public static WebUntisResponse requestPOST(String method, WebUntisSessionInfo session, String endPoint,
-      String school, String params) throws IOException {
+                                             String school, String params) throws IOException {
     final URL url;
     try {
       url = new URI(session.getServer() + getEndPoint(endPoint) + "?school=" + school).toURL();
@@ -33,7 +34,7 @@ public class WebUntisRequestManager {
     if (params == null || params.isEmpty())
       params = "{}";
     final String request = "{\"id\":\"" + session.getRequestId() + "\",\"method\":\"" + method + "\",\"params\":"
-        + params + ",\"jsonrpc\":\"2.0\"}";
+            + params + ",\"jsonrpc\":\"2.0\"}";
 
     if (printRequests) {
       System.out.println("Request[POST]: " + url.toExternalForm());
@@ -48,7 +49,7 @@ public class WebUntisRequestManager {
     con.setRequestProperty("Content-Type", "application/json");
     if (session.isActive())
       con.setRequestProperty("Cookie",
-          "JSESSIONID=" + session.getSessionId() + "; schoolname=" + session.getSchoolname());
+              "JSESSIONID=" + session.getSessionId() + "; schoolname=" + session.getSchoolname());
 
     // Write request body
     OutputStream outputStream = con.getOutputStream();
@@ -107,8 +108,7 @@ public class WebUntisRequestManager {
     con.setRequestProperty("User-Agent", userAgent);
     con.setRequestProperty("Content-Type", "application/json");
     con.setRequestProperty("Cookie",
-        "JSESSIONID=" + session.getSessionId() + "; schoolname=" + session.getSchoolname());
-
+            "JSESSIONID=" + session.getSessionId() + "; schoolname=" + session.getSchoolname());
     // Read response
     BufferedReader input = new BufferedReader(new InputStreamReader(con.getInputStream()));
     StringBuilder stringBuilder = new StringBuilder();
@@ -121,7 +121,19 @@ public class WebUntisRequestManager {
     input.close();
     con.disconnect();
 
-    return new WebUntisResponse(new JSONObject(stringBuilder.toString()));
+    // Check Content-Type and convert XML to JSON if necessary
+    String contentType = con.getHeaderField("Content-Type");
+    String responseString = stringBuilder.toString();
+    if (contentType != null && contentType.contains("application/xml")) {
+      JSONObject jsonResponse = XML.toJSONObject(responseString);
+      // Remove the JsonApiDataDocument wrapper
+      if (jsonResponse.has("JsonApiDataDocument")) {
+        jsonResponse = jsonResponse.getJSONObject("JsonApiDataDocument");
+      }
+      responseString = jsonResponse.toString();
+    }
+
+    return new WebUntisResponse(new JSONObject(responseString));
   }
 
   private static String getEndPoint(String endPoint) {
