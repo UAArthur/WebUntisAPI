@@ -3,30 +3,10 @@ package de.keule.webuntis;
 import java.io.IOException;
 import java.util.Calendar;
 
+import de.keule.webuntis.response.*;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import de.keule.webuntis.response.Absences;
-import de.keule.webuntis.response.ClassregEvents;
-import de.keule.webuntis.response.Departments;
-import de.keule.webuntis.response.Exams;
-import de.keule.webuntis.response.Holidays;
-import de.keule.webuntis.response.Klasse;
-import de.keule.webuntis.response.Klassen;
-import de.keule.webuntis.response.RemarkCategories;
-import de.keule.webuntis.response.RemarkGroups;
-import de.keule.webuntis.response.Rooms;
-import de.keule.webuntis.response.Schools;
-import de.keule.webuntis.response.Schoolyear;
-import de.keule.webuntis.response.Schoolyears;
-import de.keule.webuntis.response.StatusData;
-import de.keule.webuntis.response.Students;
-import de.keule.webuntis.response.Subjects;
-import de.keule.webuntis.response.Substitutions;
-import de.keule.webuntis.response.Teachers;
-import de.keule.webuntis.response.Timegrid;
-import de.keule.webuntis.response.Timetable;
 
 /*
  * Created: 17.02.2022

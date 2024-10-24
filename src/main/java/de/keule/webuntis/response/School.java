@@ -1,6 +1,9 @@
 package de.keule.webuntis.response;
 
+import de.keule.webuntis.WebUntisRequestManager;
 import org.json.JSONObject;
+
+import java.awt.image.BufferedImage;
 
 public class School {
 	private boolean useMobileServiceUrlAndroid;
@@ -13,6 +16,7 @@ public class School {
 	private String address;
 	private String server;
 	private int schoolId;
+	private BufferedImage logoSmall;
 
 	public School(JSONObject info) {
 		this.json = info;
@@ -63,6 +67,10 @@ public class School {
 		return mobileServiceUrl;
 	}
 
+	public BufferedImage getLogoSmall() throws Exception {
+		BufferedImage bufferedImage = WebUntisRequestManager.requestGETImage("https://" + getServer()+"/", "WebUntis/pimage.do?cat=23&id=1", getLoginName(), getSchoolId());
+		return bufferedImage;
+	}
 	public JSONObject getJSON() {
 		return json;
 	}
