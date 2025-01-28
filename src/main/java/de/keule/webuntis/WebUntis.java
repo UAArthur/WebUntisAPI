@@ -22,6 +22,7 @@ public class WebUntis {
 	private String userName;
 	private String school;
 	private String pas;
+	private String sharedSecret;
 
 	/* Constructors */
 	public WebUntis(String userName, String pas, String school, String server, boolean secretLogin) {
@@ -78,6 +79,17 @@ public class WebUntis {
 		session.setPersonId(result.getInt("personId"));
 		session.setPersonType(result.getInt("personType"));
 		session.setKlasseId(result.getInt("klasseId"));
+
+		JSONArray params1 = new JSONArray();
+		params1.put(new JSONObject().put("userName", userName).put("password", pas));
+
+		WebUntisResponse response1 = WebUntisRequestManager.requestPOST(WebUntisRequestMethod.GET_APP_SHARED_SECRET,
+				session, "WebUntis/jsonrpc_intern.do", school, params1.toString());
+		if (response1.hasError())
+			throw new WebUntisException(response1.getCompleteErrorMessage());
+
+		sharedSecret = response1.getResponse().getString("result");
+
 		return true;
 	}
 
@@ -139,7 +151,7 @@ public class WebUntis {
 			throw new WebUntisException("Session isn't valid!");
 
 		JSONArray params = new JSONArray();
-		params.put(new JSONObject().put("auth", WebUntisAuthentication.getAuthObject(userName, pas)));
+		params.put(new JSONObject().put("auth", WebUntisAuthentication.getAuthObject(userName, sharedSecret)));
 
 		WebUntisResponse response = WebUntisRequestManager.requestPOST(WebUntisRequestMethod.GET_AUTHTOKEN, session,
 				"WebUntis/jsonrpc_intern.do", school, params.toString());
@@ -552,6 +564,10 @@ public class WebUntis {
 
 	public String getPas() {
 		return pas;
+	}
+
+	public String getSharedSecret() {
+		return sharedSecret;
 	}
 
 	/* Static */
