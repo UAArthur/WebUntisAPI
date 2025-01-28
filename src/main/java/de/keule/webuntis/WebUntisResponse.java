@@ -3,8 +3,8 @@ package de.keule.webuntis;
 import org.json.JSONObject;
 
 public class WebUntisResponse {
-	private JSONObject response;
-	private boolean hasError;
+	private final JSONObject response;
+	private final boolean hasError;
 
 	public WebUntisResponse(JSONObject response) {
 		this.response = response;
