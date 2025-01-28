@@ -29,6 +29,7 @@ public enum WebUntisRequestMethod {
 	GET_TIMETABLE_WITH_ABSENCES("getTimetableWithAbsences"),
 	GET_CLASSREG_CATEGORIES("getClassregCategories"),
 	GET_CLASSREG_CATEGORY_GROUPS("getClassregCategoryGroups"),
+	GET_AUTHTOKEN("getAuthToken"),
 	;
 	
 	public final String NAME;

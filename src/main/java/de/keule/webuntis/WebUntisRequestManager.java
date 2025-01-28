@@ -7,6 +7,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Base64;
+import java.util.Objects;
 
 import javax.imageio.ImageIO;
 import javax.net.ssl.HttpsURLConnection;
@@ -17,7 +18,7 @@ import org.json.XML;
 public class WebUntisRequestManager {
   private static String userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/97.0.4692.99 Safari/537.36 OPR/83.0.4254.46";
   private static final String DEFAULT_ENDPOINT = "WebUntis/jsonrpc.do";
-  private static boolean printRequests = false;
+  private static boolean printRequests = true;
 
   public static WebUntisResponse requestPOST(WebUntisRequestMethod method, WebUntisSessionInfo session,
                                              String endPoint, String school, String params) throws IOException {
@@ -48,10 +49,10 @@ public class WebUntisRequestManager {
     con.setInstanceFollowRedirects(true);
     con.setRequestProperty("User-Agent", userAgent);
     con.setRequestProperty("Content-Type", "application/json");
-    if (session.isActive() && method != "getAuthToken")
+    if (session.isActive() && !Objects.equals(method, "getAuthToken"))
       con.setRequestProperty("Cookie",
               "JSESSIONID=" + session.getSessionId() + "; schoolname=" + session.getSchoolname());
-    if (method == "getAuthToken")
+    if (Objects.equals(method, "getAuthToken"))
       con.setRequestProperty("Cookie", "schoolname=" + session.getSchoolname() + "; Tenant-Id=5403700");
     // Write request body
     OutputStream outputStream = con.getOutputStream();
@@ -94,14 +95,14 @@ public class WebUntisRequestManager {
   }
 
   /**
-   * @param wurl     The URL of the WebUntis server
-   * @param endPoint The endpoint to send the request to
+   * @param wurl      The URL of the WebUntis server
+   * @param endPoint  The endpoint to send the request to
    * @param schoolName The name of the school
-   * @param tenantId The tenant ID
-   * @return Returns the Image as a BufferedImage object
+   * @param tenantId  The tenant ID
+   * @return Returns the image data as a byte array
    * @throws Exception
    */
-  public static BufferedImage requestGETImage(String wurl, String endPoint, String schoolName, int tenantId) throws Exception {
+  public static byte[] requestGETImage(String wurl, String endPoint, String schoolName, int tenantId) throws Exception {
     final URL url;
     try {
       url = new URI(wurl + endPoint).toURL();
@@ -124,27 +125,35 @@ public class WebUntisRequestManager {
     con.setRequestProperty("Cookie", "schoolname=\"_" + Base64.getEncoder().encodeToString(schoolName.getBytes()) +
             "\"; Tenant-Id=\"" + tenantId + "\"; JSESSIONID=06FE4158D276FEEF5B9F04E33C81073B;");
     con.setRequestProperty("User-Agent", userAgent);
-    con.setRequestProperty("Referer", "https://arche.webuntis.com/WebUntis/?school=" + schoolName);
+    con.setRequestProperty("Referer", wurl+ "/WebUntis/?school=" + schoolName);
 
     // Get response code
     int responseCode = con.getResponseCode();
 
     // Handle response
     if (responseCode == HttpURLConnection.HTTP_OK) { // success
-      // Get input stream and read it as a BufferedImage
+      // Read the response as a byte array
       InputStream inputStream = con.getInputStream();
-      BufferedImage image = ImageIO.read(inputStream);  // Convert the input stream into a BufferedImage
-      inputStream.close();  // Close the input stream
-
-      return image;  // Return the BufferedImage object
+      ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+      byte[] data = new byte[1024];
+      int bytesRead;
+      while ((bytesRead = inputStream.read(data)) != -1) {
+        buffer.write(data, 0, bytesRead);
+      }
+      inputStream.close(); // Close the input stream
+      return buffer.toByteArray(); // Return the byte array
     } else {
       System.out.println("GET request failed.");
-      return null;  // Return null in case of failure
+      return null; // Return null in case of failure
     }
   }
 
 
   public static WebUntisResponse requestGET(WebUntisSessionInfo session, String endPoint) throws IOException {
+    return requestGET(session, null, endPoint);
+  }
+
+  public static WebUntisResponse requestGET(WebUntisSessionInfo session, String token, String endPoint) throws IOException {
     final URL url;
     try {
       url = new URI(session.getServer() + endPoint).toURL();
@@ -160,8 +169,11 @@ public class WebUntisRequestManager {
     con.setInstanceFollowRedirects(true);
     con.setRequestProperty("User-Agent", userAgent);
     con.setRequestProperty("Content-Type", "application/json");
-    con.setRequestProperty("Cookie",
-            "JSESSIONID=" + session.getSessionId() + "; schoolname=" + session.getSchoolname());
+    con.setRequestProperty("Cookie", "JSESSIONID=" + session.getSessionId() + "; schoolname=" + session.getSchoolname());
+    if (token != null) {
+      con.setRequestProperty("Authorization", "Bearer " + token);
+    }
+
     // Read response
     BufferedReader input = new BufferedReader(new InputStreamReader(con.getInputStream()));
     StringBuilder stringBuilder = new StringBuilder();

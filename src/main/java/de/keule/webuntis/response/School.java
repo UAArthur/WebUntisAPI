@@ -67,8 +67,8 @@ public class School {
 		return mobileServiceUrl;
 	}
 
-	public BufferedImage getLogoSmall() throws Exception {
-		BufferedImage bufferedImage = WebUntisRequestManager.requestGETImage("https://" + getServer()+"/", "WebUntis/pimage.do?cat=23&id=1", getLoginName(), getSchoolId());
+	public byte[]  getLogoSmall() throws Exception {
+		byte[] bufferedImage = WebUntisRequestManager.requestGETImage("https://" + getServer()+"/", "WebUntis/pimage.do?cat=23&id=1", getLoginName(), getSchoolId());
 		return bufferedImage;
 	}
 	public JSONObject getJSON() {

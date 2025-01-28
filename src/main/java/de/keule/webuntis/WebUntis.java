@@ -133,6 +133,31 @@ public class WebUntis {
 		return true;
 	}
 
+	/* Get auth token */
+	public TokenData getTokenData() throws IOException {
+		if (!sessionIsValid())
+			throw new WebUntisException("Session isn't valid!");
+
+		JSONArray params = new JSONArray();
+		params.put(new JSONObject().put("auth", WebUntisAuthentication.getAuthObject(userName, pas)));
+
+		WebUntisResponse response = WebUntisRequestManager.requestPOST(WebUntisRequestMethod.GET_AUTHTOKEN, session,
+				"WebUntis/jsonrpc_intern.do", school, params.toString());
+		if (response.hasError())
+			throw new WebUntisException(response.getCompleteErrorMessage());
+
+		return new TokenData(response.getResponse());
+	}
+
+	/* Get Data */
+	public UserData getUserData(String token) throws IOException {
+		if (!sessionIsValid())
+			throw new WebUntisException("Session isn't valid!");
+
+		WebUntisResponse response = WebUntisRequestManager.requestGET(session, token, "WebUntis/api/rest/view/v2/mobile/data");
+		return new UserData(response.getResponse());
+	}
+
 	/* Get timetable */
 	public Timetable getTimetableForToday() throws IOException {
 		return getTimetable(session.getType(), session.getPersonId(), null, null);

@@ -24,35 +24,40 @@ public class WebUntisResponse {
 	}
 
 	public int getErrorCode() {
-		JSONObject error = response.optJSONObject("error", null);
-		if (error == null)
-			return 0;
+		// Remove second parameter and handle null manually
+		JSONObject error = response.optJSONObject("error");
+		if (error == null) {
+			return 0; // No error
+		}
 		return error.getInt("code");
 	}
 
 	public String getErrorMessage() {
-		JSONObject error = response.optJSONObject("error", null);
-		if (error == null)
-			return "No Error";
+		JSONObject error = response.optJSONObject("error");
+		if (error == null) {
+			return "No Error"; // Default message
+		}
 		return error.getString("message");
 	}
 
 	public String getCompleteErrorMessage() {
-		JSONObject error = response.optJSONObject("error", null);
-		if (error == null)
-			return "No Error";
-		return "Server returned error code: " + error.getInt("code") + "(" + error.getString("message") + ")";
+		JSONObject error = response.optJSONObject("error");
+		if (error == null) {
+			return "No Error"; // Default message
+		}
+		return "Server returned error code: " + error.getInt("code") + " (" + error.getString("message") + ")";
 	}
 
 	/* Static */
 	public static boolean hasError(JSONObject json) {
-		JSONObject error = json.optJSONObject("error", null);
+		JSONObject error = json.optJSONObject("error");
 		return error != null;
 	}
 
 	public static int getErrorCode(JSONObject json) {
-		if (!hasError(json))
+		if (!hasError(json)) {
 			return 0;
+		}
 		return json.optJSONObject("error").getInt("code");
 	}
 }
